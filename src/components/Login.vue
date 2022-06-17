@@ -6,7 +6,7 @@
             <el-input size="large" v-model="username" /> <br />
             <span class="label">密码</span> <br />
             <el-input type="password" size="large" v-model="password" /> <br />
-            <el-button size="large" type="primary" @click="handleSignup">登录</el-button>
+            <el-button size="large" type="primary" @click="handleLogin">登录</el-button>
         </div>
     </div>
 </template>
@@ -29,7 +29,6 @@ export default {
         },
         async handleLogin() {
             let res = await signin(this.username, this.password);
-            console.log(res);
             if (res.meta.status == 400) {
                 alert(res.meta.message);
             } else {
@@ -58,7 +57,7 @@ export default {
     margin: 0 auto;
     width: 40%;
     /* background: #f7f8f9; */
-    background: rgba(119,136,153,0.5);
+    background: rgba(119,136,153,0.3);
     margin-top: 100px;
 }
 h1 {
