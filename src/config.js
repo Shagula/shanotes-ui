@@ -1,3 +1,4 @@
-module.exports = {
-    baseUrl: 'http://shagula.cc'
+export default {
+    // baseUrl: 'http://shagula.cc'
+    baseUrl: 'http://localhost:80'
 }

@@ -29,13 +29,13 @@ export default {
         },
         async handleLogin() {
             let res = await signin(this.username, this.password);
-            if (res.meta.status == 400) {
+            if (res.meta.status != 200) {
                 alert(res.meta.message);
             } else {
                 window.localStorage.setItem("token", res.token);
-                window.localStorage.setItem("Userid", res.id);
-                window.localStorage.setItem("Username", res.username);
-                window.localStorage.setItem("Access", res.access);
+                window.localStorage.setItem("userid", res.id);
+                window.localStorage.setItem("username", res.username);
+                window.localStorage.setItem("is_admin", res.access);
                 this.$router.push("/home");
             }
         },

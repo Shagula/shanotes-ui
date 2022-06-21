@@ -1,65 +1,54 @@
+import router from '@/router';
 import axios from 'axios'
 import conf from '../config'
-
 export function request(config) {
     const instance = axios.create({
         baseURL: conf.baseUrl, // 根路径，网关统一入口路径
         timeout: 5000 // 请求超时时间，请求达到5秒，不让请求
     })
-    // 请求拦截
-    instance.interceptors.request.use(
-        (config) => {
-            // 如果有一个接口需要认证才可以访问，就在这里统一设置
-            // 使用 JWT 认证: 取出用户登录时存的 token 放到请求头
-            const token = window.localStorage.getItem('token')
-            if (token) {
-                // 如果token存在
-                // Authorization: Bearer Token ; key : value
-                // 在headers头部加上Authorization属性，把token带到服务器里面
-                config.headers.Authorization = 'Bearer ' + token // Bearer 右边有一个空格
+    instance.interceptors.response.use(
+        (res) => {
+            let status = res.data.meta.status;
+            if (status == 401 || status == 403) {
+                console.log('由于token失效被拦截: 状态', status);
+                router.push({ path: '/login' });
+                return res;
             }
-            // 放行
-            return config
+            return res;
+        }
+    );
+    // 请求拦截, 检查token
+    instance.interceptors.request.use(
+        (req) => {
+            const token = window.localStorage.getItem('token')
+            if (token != undefined) {
+                req.headers.Authorization = 'Bearer ' + token // Bearer 右边有一个空格
+            }
+            else {
+                router.push({ path: '/login' })
+            }
+            return req
         }
         // (error) => {
         //   // 什么也不要做
         // }
     )
-
-    // 响应拦截
-    instance.interceptors.response.use(
-        (res) => {
-            // console.log(res) // 这里可以打印所有的数据
-            return res.data ? res.data : res // 封装获取数据 data 路径
-        },
-        (err) => {
-            // 如果有需要授权才可以访问的接口，统一去 login 授权
-            if (err.response.status === 401) {
-                // Toast.fail('请您先登录！')
-                router.push({ path: '/login' })
-            }
-            // 如果后端接口有错误提示消息，这里统一处理,显示错误信息
-            // console.log(err)
-            // 通过err.response响应数据里面的错误，拿到Object键里面的错误信息
-            // Notify(err.response.data.errors[Object.keys(err.response.data.errors)[0]][0]);
-        }
-    )
-
     return instance(config)
 }
 
 export async function doGet(url, params) {
-    return await request({
+    return (await request({
         url,
         method: 'get',
         params: params
-    })
+    }));
 }
 
 export async function doPost(url, body) {
-    return await request({
+    let data = (await request({
         url,
         method: 'post',
         data: body
-    })
+    })).data;
+    return data;
 }
