@@ -5,7 +5,7 @@ export default createRouter({
     routes: [
         {
             path: '/',
-            redirect: '/login',
+            redirect: '/home',
         },
         {
             path: '/login',
@@ -13,7 +13,13 @@ export default createRouter({
         },
         {
             path: '/home',
-            component: () => import('../components/Home.vue')
+            component: () => import('../components/Home.vue'),
+            children: [
+                {
+                    path: 'notes',
+                    component: () => import('../components/notes/Notes.vue'),
+                }
+            ]
         }
     ]
 })

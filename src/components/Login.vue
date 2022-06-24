@@ -22,7 +22,6 @@ export default {
     methods: {
         async handleSignup() {
             let res = await signup(this.username, this.password);
-            console.log(res);
             if (res.meta.status == 400) {
                 alert(res.meta.message);
             }

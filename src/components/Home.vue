@@ -1,20 +1,22 @@
 <template>
-  <h1>{{text}}</h1>
+  <div id="main">
+    <NavigationBar></NavigationBar>
+    <router-view></router-view>
+  </div>
 </template>
 <script>
-import { test } from '../api/test';
-
+import NavigationBar from './NavigationBar.vue'
 export default {
   async mounted() {
-    let msg = (await test());
-    this.text = msg.data;
+    
   },
+  components: { NavigationBar },
   data() {
     return {
-      text: '',
     }
   }
 }
 </script>
+
 <style scoped>
 </style>

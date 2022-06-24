@@ -41,7 +41,7 @@ export async function doGet(url, params) {
         url,
         method: 'get',
         params: params
-    }));
+    })).data;
 }
 
 export async function doPost(url, body) {
