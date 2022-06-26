@@ -9,11 +9,20 @@ export async function create_folder(parent, title) {
 export async function create_note(parent, title) {
     return await doPost('/notes/create_note', { parent, title })
 }
-export async function del(id){
-    return await doPost('/notes/del_link',{path_id:id});
+export async function del(id) {
+    return await doPost('/notes/del_link', { path_id: id });
 }
-export async function read_link(id){
-    return await doGet('/notes/read_link',{path_id:id});
+export async function read_link(id) {
+    return await doGet('/notes/read_link', { path_id: id });
+}
+export async function update_link(id, content) {
+    return await doPost('/notes/update_link', { path_id: id, content });
+}
+export async function read_meta(id) {
+    return await doGet('/notes/read_meta', { path_id: id });
+}
+export async function move_link(path_id, parent) {
+    return await doPost('/notes/move_link', { path_id:path_id, parent });
 }
 // processed
 export async function get_children(parent) {
@@ -37,3 +46,4 @@ export async function get_children(parent) {
             ret.push(tab.get(item));
     return ret;
 }
+

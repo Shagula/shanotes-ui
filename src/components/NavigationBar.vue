@@ -8,7 +8,7 @@
       <el-sub-menu index="4">
         <template #title>用户</template>
         <el-menu-item index="4-0">个人主页</el-menu-item>
-        <el-menu-item index="4-1">退出登录</el-menu-item>
+        <el-menu-item :route="{path:'/login'}">退出登录</el-menu-item>
       </el-sub-menu>
     </el-menu>
   </div>

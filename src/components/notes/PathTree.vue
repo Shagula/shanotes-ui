@@ -31,8 +31,8 @@
         </div>
       </template>
       <!-- 目录树 -->
-      <el-tree v-loading="loading" highlight-current :data="folder"
-        @node-click="handleNodeClick" :props="{ class: customNodeClass }"></el-tree>
+      <el-tree @node-drop="handleDrag" draggable v-loading="loading" highlight-current :data="folder"
+        :allow-drop="allowDrop" @node-click="handleNodeClick" :props="{ class: customNodeClass }"></el-tree>
     </el-card>
     <!-- 创建文件(夹)对话框 -->
     <el-dialog v-model="dialog_vis" title="创建新路径" :before-close="handleDiaClose">
@@ -59,7 +59,7 @@
     <el-dialog v-model="del_dia_vis" title="删除确认">
       <span>
         <p style="margin-bottom:40px; font-size:30px;color:red">
-          你确定要删除{{selected_folder.title}}吗？删除操作不可撤销<br />
+          你确定要删除{{selected_folder.label}}吗？删除操作不可撤销<br />
         </p>
       </span>
       <span class="dialog-footer">
@@ -70,9 +70,9 @@
   </div>
 </template>
 <script>
-import { root_path, create_folder, del, create_note, get_children } from "../../api/notes";
-import { read_link } from '../../api/notes';
-
+import { root_path, create_folder, del, create_note, get_children, move_link, update_link } from "../../api/notes";
+import { read_link, read_meta } from '../../api/notes';
+import { gen_folder_chilren_arr } from '../../models/notes';
 import { ElMessage } from 'element-plus'
 
 
@@ -81,9 +81,20 @@ const FOLDER_TAG = 1, FILE_TAG = 2;
 
 export default {
   async mounted() {
+    // 防止刷新丢失
+    let cur_fid = parseInt(window.localStorage.getItem('cur_fid'));
+
     this.froot = this.folder[0];
-    this.selected_folder = this.froot;
-    await this.reload_root();
+
+    if (cur_fid) {
+      await this.reload_root(cur_fid);
+      this.selected_fid = cur_fid;
+    }
+    else {
+      this.selected_fid = 0;
+      this.selected_folder = this.froot;
+      await this.reload_root();
+    }
   },
 
   data() {
@@ -127,6 +138,7 @@ export default {
     async reload_root(path_id = 0) {
       let root_folder;
       if (path_id == 0) {
+        // init
         this.froot.parent = 0;
         this.froot.path_id = 0;
         this.froot.label = "根目录";
@@ -139,15 +151,16 @@ export default {
 
         this.is_empty_folder = root_folder.meta.status != 200;
         if (!this.is_empty_folder) {
-          this.froot.children = await this.process_folder(root_folder.value, 1);
+          this.froot.children = await this.process_folder(root_folder.value, 0, 1, 1);
         }
       }
       else {
         let folder_meta = await read_link(path_id);
         if (folder_meta.meta.status != 200)
           return alert(folder_meta.meta.message);
+
         folder_meta = folder_meta.content;
-        console.log(folder_meta);
+
         this.froot.path_id = folder_meta.id;
         this.froot.label = folder_meta.title;
         this.froot.parent = folder_meta.parent;
@@ -165,16 +178,17 @@ export default {
       }
 
     },
+    // 数据处理的一些函数 ==============================
     // 将文件列表转为element tree
-    async process_folder(value, parent, depth = 1) {
+    async process_folder(value, parent, depth = 1, end_depth) {
       let ret = [];
       for (let item of value) {
-        let obj = { label: item.title, path_id: item.id, link_type: item.link_type, children: null, parent };
+        let obj = { label: item.title, depth, path_id: item.id, link_type: item.link_type, children: null, parent };
         // 每次最多多读取一层
-        if (depth < this.froot.depth + 2 && item.link_type == FOLDER_TAG) {
+        if (depth <= end_depth && item.link_type == FOLDER_TAG) {
           let sons = await get_children(item.id);
           if (sons != null)
-            obj.children = await this.process_folder(sons, item.id, depth + 1);
+            obj.children = await this.process_folder(sons, item.id, depth + 1, end_depth);
         }
         if (item.children != undefined && item.children != null)
           obj.children = item.children;
@@ -182,13 +196,17 @@ export default {
       }
       return ret;
     },
-
+    async sync_folder_info(folder) {
+      let arr = gen_folder_chilren_arr(folder.children);
+      return await update_link(folder.path_id, JSON.stringify(arr));
+    },
     handleDiaClose() {
       this.dialog_vis = false;
     },
     async handleFolderBack() {
       if (this.froot.path_id != 0) {
         await this.reload_root(this.froot.parent);
+        window.localStorage.setItem('cur_fid', this.froot.parent);
       }
     },
     async createLink() {
@@ -229,6 +247,8 @@ export default {
           type: 'error',
         })
       else {
+        window.localStorage.setItem('cur_fid', this.selected_fid);
+
         await this.reload_root(this.selected_fid);
       }
     },
@@ -249,15 +269,62 @@ export default {
       iter(this.froot);
 
     },
-    handleNodeClick(tree_node) {
+
+    // 树形控件的一些函数 ===============================
+    allowDrop(draggingNode, dropNode, type) {
+      if (type == 'inner')
+        return dropNode.data.link_type == 1;
+      else {
+        if (dropNode.data.depth == 0) {
+          return false;
+        }
+      }
+      return true;
+    },
+    // 处理点击事件
+    async handleNodeClick(tree_node) {
       this.selected_fid = tree_node.path_id;
       this.selected_folder = tree_node;
+      this.$emit('click_path', this.selected_folder);
       // 文件类型
       if (tree_node.link_type == '2') {
-
       }
       //文件夹
       else {
+        if (!tree_node.children) {
+          let children_list = await get_children(tree_node.path_id);
+          tree_node.children = await this.process_folder(children_list, tree_node.depth + 1, tree_node.depth + 2);
+        }
+      }
+    },
+    async handleDrag(node, enter_node, type) {
+      let raw_enter = enter_node;
+
+      node = node.data, enter_node = enter_node.data;
+      let mid = node.path_id, dest_id = enter_node.path_id;
+      let node_meta = await read_meta(node.path_id), enter_meta = await read_meta(enter_node.path_id);
+
+      if (type == 'inner') {
+        // alert(`将${node.label} 移动到 ${enter_node.label}`);
+        let res = await move_link(mid, dest_id);
+        if (res.meta.status != 200) {
+          return alert(res.meta.message);
+        }
+        if (!this.sync_folder_info(enter_node))
+          return alert("更新文件夹信息失败");
+      }
+      else {
+        if (node_meta.parent == enter_meta.parent) {
+          // alert("只要更新目录");
+          await this.sync_folder_info(raw_enter.parent.data)
+        }
+        else {
+          // alert(`将${node.label} 移动到 ${enter_node.label}的父亲`);
+          let res = await move_link(mid, enter_node.parent);
+          if (res.meta.status != 200)
+            return alert(res.meta.message);
+          await this.sync_folder_info(raw_enter.parent.data)
+        }
       }
     }
   }
