@@ -1,11 +1,13 @@
 <template>
   <div id="main">
-    <PathTree @click_path="handleClickPath" />
+    <PathTree id="tree-nav" @click_path="handleClickPath" />
 
-    <mavon-editor v-loading="loading" v-if="cur_path && cur_path.link_type!=1" id="md-editor" v-model="markdown_content"
-      @save="saveFile" :defaultOpen="'preview'" :subfield="false" :toolbars="markdown_options" :navigation="true">
-    </mavon-editor>
-
+    <div class="md" style="oveflow:auto">
+      <mavon-editor v-loading="loading" v-if="cur_path && cur_path.link_type!=1" id="md-editor"
+        v-model="markdown_content" @save="saveFile" :defaultOpen="'preview'" :subfield="false"
+        :toolbars="markdown_options">
+      </mavon-editor>
+    </div>
   </div>
 </template>
 <script>
@@ -74,9 +76,15 @@ export default {
   display: flex;
   flex-direction: row;
   width: 100%;
-  #md-editor {
+  height: 90vh;
+  #tree-nav
+  {
+    width: 250px;
+  };
+  .md {
     height: 100%;
     width: 80%;
+    overflow-y: auto;
   }
 }
 </style>
