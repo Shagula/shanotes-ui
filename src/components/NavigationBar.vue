@@ -7,7 +7,7 @@
       <div class="flex-grow" />
       <el-sub-menu index="4">
         <template #title>用户</template>
-        <el-menu-item index="4-0">个人主页</el-menu-item>
+        <el-menu-item index="/home/user_info">个人主页</el-menu-item>
         <el-menu-item :route="{path:'/login'}">退出登录</el-menu-item>
       </el-sub-menu>
     </el-menu>
@@ -24,7 +24,7 @@ export default {
 <style scoped>
 #main {
   margin: 0 auto;
-  margin-left: 250px;
+  margin-left: 280px;
   margin-right: 200px;
 }
 .flex-grow {

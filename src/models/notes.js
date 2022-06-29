@@ -33,7 +33,7 @@ async function out_folder_iter(path_id, depth, msg) {
     }
     else {
         msg.file =  link_info.title;
-        ret += '\n' + link_info.content ? link_info.content : '' + '\n';
+        ret += '\n' + (link_info.content ? link_info.content : '') + '\n';
     }
     return ret;
 }

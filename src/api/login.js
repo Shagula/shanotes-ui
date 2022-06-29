@@ -8,3 +8,6 @@ export async function signup(username, password) {
     return doPost('/user/signup', { username, password });
 }
 
+export async function update_password(password) {
+    return doPost('/user/update_password', { password });
+}

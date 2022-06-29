@@ -1,0 +1,1 @@
+scp -r ./dist/* HK:/home/htto/apps/shanotes-server/public

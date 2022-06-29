@@ -149,25 +149,29 @@ export default {
         async createLink() {
             if (this.create_info.title.length < 1)
                 return alert("标题必须长度必须大于1");
+            let par_id = this.selected_fid;
+            if (this.selected_folder && this.selected_folder.link_type == 2)
+                return ElMessage("必须选中一个文件夹来创建文件");
+
             if (this.create_info.type == "folder") {
-                let id = await create_folder(this.selected_fid, this.create_info.title);
+                let id = await create_folder(par_id, this.create_info.title);
                 if (id.meta.status != 200)
                     return alert('创建失败');
 
                 id = id.id;
                 let val = {
-                    parent: this.selected_fid, label: this.create_info.title, path_id: id, link_type: 1, children: []
+                    parent: par_id, label: this.create_info.title, path_id: id, link_type: 1, children: []
                 }
                 this.selected_folder.children.push(val);
             }
             else if (this.create_info.type == 'file') {
-                let id = await create_note(this.selected_fid, this.create_info.title);
+                let id = await create_note(par_id, this.create_info.title);
                 if (id.meta.status != 200)
                     return alert('创建失败');
 
                 id = id.id;
                 let val = {
-                    parent: this.selected_fid, label: this.create_info.title, path_id: id, link_type: 2, children: []
+                    parent: par_id, label: this.create_info.title, path_id: id, link_type: 2, children: []
                 }
                 this.selected_folder.children.push(val);
             }

@@ -18,8 +18,12 @@ export default createRouter({
                 {
                     path: 'notes',
                     component: () => import('../components/notes/Notes.vue'),
+                },
+                {
+                    path: 'user_info',
+                    component: () => import('../components/user/UserHome.vue'),
                 }
             ]
-        }
+        },
     ]
 })

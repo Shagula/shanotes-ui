@@ -13,6 +13,7 @@
 <script>
 import PathTree from './PathTree.vue'
 import { read_link, update_link } from '../../api/notes';
+import { ElMessage } from 'element-plus';
 export default {
   components: { PathTree },
   data() {
@@ -44,9 +45,9 @@ export default {
       let res = await update_link(path_id, this.markdown_content);
       this.loading = false;
       if (res.meta.status != 200)
-        return alert("保存失败");
+        return ElMessage("保存失败");
       this.raw_content = this.markdown_content;
-      return alert("保存成功");
+      return ElMessage({type:'success',message:"保存成功"});
     },
     async handleClickPath(val) {
       if (!val || val.path_id == 0 || val.link_type == 1)
@@ -79,7 +80,7 @@ export default {
   height: 90vh;
   #tree-nav
   {
-    width: 250px;
+    width: 280px;
   };
   .md {
     height: 100%;

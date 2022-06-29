@@ -35,7 +35,7 @@ export default {
         window.localStorage.setItem("token", res.token);
         window.localStorage.setItem("userid", res.id);
         window.localStorage.setItem("username", res.username);
-        window.localStorage.setItem("is_admin", res.access);
+        window.localStorage.setItem("is_admin", res.access==1);
         this.$router.push("/home");
       }
     },
