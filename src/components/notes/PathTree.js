@@ -88,7 +88,7 @@ export default {
 
                 this.is_empty_folder = root_folder.meta.status != 200;
                 if (!this.is_empty_folder) {
-                    this.froot.children = await this.process_folder(root_folder.value, 0, 1, 1);
+                    this.froot.children = await this.process_folder(root_folder.value, 0, 1, 2);
                 }
             }
             else {
